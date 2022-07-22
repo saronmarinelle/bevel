@@ -1,0 +1,55 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: invoke-producer-allchannel-supplychain7
+  namespace: producer-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: invoke-producer-allchannel-supplychain7
+  chart:
+    git: git@github.com:saronmarinelle/bevel.git
+    ref: local
+    path: platforms/hyperledger-fabric/charts/invoke_chaincode
+  values:
+    metadata:
+      namespace: producer-net
+      network:
+        version: 2.2.2
+      add_organization: false
+      images:
+        fabrictools: hyperledger/fabric-tools:2.2.2
+        alpineutils: index.docker.io/hyperledgerlabs/alpine-utils:1.0
+    peer:
+      name: peer0
+      address: peer0.producer-net:7051
+      localmspid: producerMSP
+      loglevel: debug
+      tlsstatus: true
+    vault:
+      role: vault-role
+      address: http://afa8761a6902d4eed83106ebd15d7aec-1934446345.ap-southeast-1.elb.amazonaws.com:8200
+      authpath: devproducer-net-auth
+      secretpath: secretsv2
+      adminsecretprefix: secretsv2/data/crypto/peerOrganizations/producer-net/users/admin 
+      orderersecretprefix: secretsv2/data/crypto/peerOrganizations/producer-net/orderer
+      serviceaccountname: vault-auth
+      imagesecretname: regcred
+      tls: false
+    orderer:
+      address: orderer1.supplychain-net:7050
+    chaincode:
+      builder: hyperledger/fabric-ccenv:2.2.2
+      name: supplychain
+      version: 7
+      invokearguments: '\"init\",\"\"'
+      endorsementpolicies:  ''
+    channel:
+      name: allchannel
+    endorsers:
+      creator: producer-net
+      name:  producer  trader 
+      corepeeraddress:  peer0.producer-net:7051  peer0.trader-net:7051 
+      nameslist: 
+        - name: producer
+        - name: trader
