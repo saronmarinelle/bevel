@@ -1,0 +1,58 @@
+apiVersion: helm.fluxcd.io/v1
+kind: HelmRelease
+metadata:
+  name: invoke-consumer-allchannel-supplychain10
+  namespace: consumer-net
+  annotations:
+    fluxcd.io/automated: "false"
+spec:
+  releaseName: invoke-consumer-allchannel-supplychain10
+  chart:
+    git: git@github.com:saronmarinelle/bevel.git
+    ref: local
+    path: platforms/hyperledger-fabric/charts/invoke_chaincode
+  values:
+    metadata:
+      namespace: consumer-net
+      network:
+        version: 2.2.2
+      add_organization: false
+      images:
+        fabrictools: hyperledger/fabric-tools:2.2.2
+        alpineutils: index.docker.io/hyperledgerlabs/alpine-utils:1.0
+    peer:
+      name: peer0
+      address: peer0.consumer-net:7051
+      localmspid: consumerMSP
+      loglevel: debug
+      tlsstatus: true
+    vault:
+      role: vault-role
+      address: http://afa8761a6902d4eed83106ebd15d7aec-1934446345.ap-southeast-1.elb.amazonaws.com:8200
+      authpath: devconsumer-net-auth
+      secretpath: secretsv2
+      adminsecretprefix: secretsv2/data/crypto/peerOrganizations/consumer-net/users/admin 
+      orderersecretprefix: secretsv2/data/crypto/peerOrganizations/consumer-net/orderer
+      serviceaccountname: vault-auth
+      imagesecretname: regcred
+      tls: false
+    orderer:
+      address: orderer1.supplychain-net:7050
+    chaincode:
+      builder: hyperledger/fabric-ccenv:2.2.2
+      name: supplychain
+      version: 10
+      invokearguments: '\"init\",\"\"'
+      endorsementpolicies:  ''
+    channel:
+      name: allchannel
+    endorsers:
+      creator: consumer-net
+      name:  producer  trader  wholesaler  retailer  consumer 
+      corepeeraddress:  peer0.producer-net:7051  peer0.trader-net:7051  peer0.wholesaler-net:7051  peer0.retailer-net:7051  peer0.consumer-net:7051 
+      nameslist: 
+        - name: producer
+        - name: trader
+        - name: wholesaler
+        - name: retailer
+        - name: consumer
